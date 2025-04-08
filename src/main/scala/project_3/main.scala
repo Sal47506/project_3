@@ -17,16 +17,81 @@ object main{
   Logger.getLogger("org.spark-project").setLevel(Level.WARN)
 
   def LubyMIS(g_in: Graph[Int, Int]): Graph[Int, Int] = {
-    while (remaining_vertices >= 1) {
-        // To Implement
+    var g = g_in.mapVertices((id, attr) => 0) // 0: undecided, 1: in MIS, -1: not in MIS
+    var remaining_vertices = g.vertices.count()
+    
+    while (remaining_vertices > 0) {
+      // Generate random numbers for undecided vertices
+      val random_g = g.mapVertices((id, attr) => 
+        if (attr == 0) scala.util.Random.nextDouble() else -1.0
+      )
+      
+      // Compare random values with neighbors
+      val messages = random_g.aggregateMessages[Boolean](
+        triplet => {
+          if (triplet.srcAttr > 0 && triplet.dstAttr > 0) {
+            if (triplet.srcAttr > triplet.dstAttr) {
+              triplet.sendToDst(false)
+            } else if (triplet.srcAttr < triplet.dstAttr) {
+              triplet.sendToSrc(false)
+            }
+          }
+        },
+        (a, b) => a || b
+      )
+      
+      // Update vertex states
+      g = g.outerJoinVertices(messages) {
+        case (id, oldAttr, Some(msg)) => 
+          if (oldAttr == 0 && !msg) 1 // Add to MIS
+          else oldAttr
+        case (id, oldAttr, None) => 
+          if (oldAttr == 0) 1 // Isolated vertices join MIS
+          else oldAttr
+      }
+      
+      // Mark neighbors of MIS vertices as not in MIS
+      g = g.mapTriplets(triplet =>
+        if (triplet.srcAttr == 1 || triplet.dstAttr == 1) -1
+        else triplet.attr
+      )
+      
+      g = g.mapVertices((id, attr) => 
+        if (attr == -1) -1
+        else if (attr == 1) 1
+        else 0
+      )
+      
+      remaining_vertices = g.vertices.filter(_._2 == 0).count()
     }
+    g
   }
-
 
   def verifyMIS(g_in: Graph[Int, Int]): Boolean = {
-    // To Implement
-  }
+    //Checks independence
+    val notadj = g_in.triplets.map(triplet => !(triplet.srcAttr == 1 && triplet.dstAttr == 1)).reduce(_ && _)
 
+    //Checks maximality
+    val allCovered = g_in.aggregateMessages[Boolean](
+      triplets{
+        if (triplet.srcAttr == 1) {
+          triplet.sendToDst(true)
+        } else if (triplet.dstAttr == 1) {
+          triplet.sendToSrc(true)
+        }
+      },
+      _||_,
+      true //if isolated vertex w no vertex
+    )
+
+    val coveredVertices = g_in.vertices.leftJoin(allCovered) {
+      case (id, attr, Some(covered)) => attr == 1 || covered
+      case (id, attr, None) => attr == 1
+    }.map(_._2).reduce(_ && _)
+
+    notadj && coveredVertices
+
+  }
 
   def main(args: Array[String]) {
 
