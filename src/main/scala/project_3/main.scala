@@ -20,13 +20,17 @@ object main {
   Logger.getLogger("project_3").setLevel(Level.INFO)
 
   def LubyMIS(g_in: Graph[Int, Int]): (Graph[Int, Int], Int) = {
+    val startTimeMillis = System.currentTimeMillis()
+
     var g = g_in.mapVertices((id, attr) => 0) // 0: undecided, 1: in MIS, -1: not in MIS
     var remaining_vertices = g.vertices.count()
-    var iterations = 0
     
+    // The instrauctions are unclear, but it seems we are supposed to report the total elapsed
+    // time after each iteration, not the duration of that iteration.
+
+    var iterations = 0
     while (remaining_vertices > 0) {
       iterations += 1
-      System.out.println(s"Iteration $iterations: $remaining_vertices vertices remaining")
       // Generate random numbers for undecided vertices
       val random_g = g.mapVertices((id, attr) => 
         if (attr == 0) scala.util.Random.nextDouble() else -1.0
@@ -77,6 +81,10 @@ object main {
       }
       
       remaining_vertices = g.vertices.filter(_._2 == 0).count()
+
+      val endTimeMillis = System.currentTimeMillis()
+      val durationSeconds = (endTimeMillis - startTimeMillis) / 1000
+      System.out.println(s"$iterations iterations complete in $durationSeconds sec. $remaining_vertices vertices remaining")
     }
     (g, iterations)
   }

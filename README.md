@@ -53,7 +53,50 @@ Apply `LubyMIS` locally on the graph files listed below and report the number of
 
 3. **(3 points)**  
 a. Run `LubyMIS` on `twitter_original_edges.csv` in GCP with 3x4 cores (vCPUs). Report the number of iterations, running time, and remaining active vertices (i.e. vertices whose status has yet to be determined) at the end of **each iteration**. You may need to include additional print statements in `LubyMIS` in order to acquire this information. Finally, verify your outputs with `verifyMIS`.  
+
+3x4 vCPUs:
+
+```
+1 iterations complete in 61 sec. 7278819 vertices remaining
+2 iterations complete in 73 sec. 37222 vertices remaining
+3 iterations complete in 83 sec. 397 vertices remaining
+4 iterations complete in 95 sec. 3 vertices remaining
+5 iterations complete in 112 sec. 0 vertices remaining
+==================================
+Luby's algorithm completed in 113s.
+Number of iterations: 5
+==================================
+```
+
 b. Run `LubyMIS` on `twitter_original_edges.csv` with 4x2 cores (vCPUs) and then 2x2 cores (vCPUs). Compare the running times between the 3 jobs with varying core specifications that you submitted in **3a** and **3b**.
+
+4x2 vCPUs:
+
+```
+1 iterations complete in 111 sec. 6824685 vertices remaining
+2 iterations complete in 140 sec. 31898 vertices remaining
+3 iterations complete in 177 sec. 373 vertices remaining
+4 iterations complete in 207 sec. 0 vertices remaining
+==================================
+Luby's algorithm completed in 208s.
+Number of iterations: 4
+==================================
+```
+
+2x2 vCPUs:
+
+```
+1 iterations complete in 154 sec. 6923135 vertices remaining
+2 iterations complete in 199 sec. 34474 vertices remaining
+3 iterations complete in 240 sec. 484 vertices remaining
+4 iterations complete in 279 sec. 1 vertices remaining
+5 iterations complete in 320 sec. 0 vertices remaining
+==================================
+Luby's algorithm completed in 321s.
+Number of iterations: 5
+==================================
+```
+
 
 ## Submission via GitHub
 Delete your project's current **README.md** file (the one you're reading right now) and include your report as a new **README.md** file in the project root directory. Have no fear—the README with the project description is always available for reading in the template repository you created your repository from. For more information on READMEs, feel free to visit [this page](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-readmes) in the GitHub Docs. You'll be writing in [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown). Be sure that your repository is up to date and you have pushed all changes you've made to the project's code. When you're ready to submit, simply provide the link to your repository in the Canvas assignment's submission.
