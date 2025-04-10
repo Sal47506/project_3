@@ -26,10 +26,11 @@ object main{
         if (attr == 0) scala.util.Random.nextDouble() else -1.0
       )
       
-      // Compare random values with neighbors
+      // Compare random values with neighbors and send messages
       val messages = random_g.aggregateMessages[Boolean](
         triplet => {
-          if (triplet.srcAttr > 0 && triplet.dstAttr > 0) {
+          // Only compare if both vertices are undecided (have random values >= 0)
+          if (triplet.srcAttr >= 0 && triplet.dstAttr >= 0) {
             if (triplet.srcAttr > triplet.dstAttr) {
               triplet.sendToDst(false)
             } else if (triplet.srcAttr < triplet.dstAttr) {
@@ -43,7 +44,7 @@ object main{
       // Update vertex states
       g = g.outerJoinVertices(messages) {
         case (id, oldAttr, Some(msg)) => 
-          if (oldAttr == 0 && !msg) 1 // Add to MIS
+          if (oldAttr == 0 && !msg) 1 // Add to MIS if not blocked by neighbor
           else oldAttr
         case (id, oldAttr, None) => 
           if (oldAttr == 0) 1 // Isolated vertices join MIS
@@ -51,16 +52,18 @@ object main{
       }
       
       // Mark neighbors of MIS vertices as not in MIS
-      g = g.mapTriplets(triplet =>
-        if (triplet.srcAttr == 1 || triplet.dstAttr == 1) -1
-        else triplet.attr
+      val neighbors = g.aggregateMessages[Int](
+        triplet => {
+          if (triplet.srcAttr == 1) triplet.sendToDst(-1)
+          if (triplet.dstAttr == 1) triplet.sendToSrc(-1)
+        },
+        (a, b) => -1
       )
       
-      g = g.mapVertices((id, attr) => 
-        if (attr == -1) -1
-        else if (attr == 1) 1
-        else 0
-      )
+      g = g.outerJoinVertices(neighbors) {
+        case (id, oldAttr, Some(-1)) => -1 // Mark as not in MIS
+        case (id, oldAttr, _) => oldAttr // Keep existing value
+      }
       
       remaining_vertices = g.vertices.filter(_._2 == 0).count()
     }
@@ -68,29 +71,30 @@ object main{
   }
 
   def verifyMIS(g_in: Graph[Int, Int]): Boolean = {
-    //Checks independence
-    val notadj = g_in.triplets.map(triplet => !(triplet.srcAttr == 1 && triplet.dstAttr == 1)).reduce(_ && _)
+    // Check independence (no two adjacent vertices in MIS)
+    val notAdjacent = g_in.triplets.map(triplet => 
+      !(triplet.srcAttr == 1 && triplet.dstAttr == 1)
+    ).reduce(_ && _)
 
-    //Checks maximality
+    // Check maximality (every vertex is either in MIS or adjacent to MIS)
     val allCovered = g_in.aggregateMessages[Boolean](
-      triplets{
+      triplet => {
         if (triplet.srcAttr == 1) {
           triplet.sendToDst(true)
-        } else if (triplet.dstAttr == 1) {
+        }
+        if (triplet.dstAttr == 1) {
           triplet.sendToSrc(true)
         }
       },
-      _||_,
-      true //if isolated vertex w no vertex
+      _ || _
     )
 
-    val coveredVertices = g_in.vertices.leftJoin(allCovered) {
+    val verticesCovered = g_in.vertices.leftJoin(allCovered) {
       case (id, attr, Some(covered)) => attr == 1 || covered
-      case (id, attr, None) => attr == 1
+      case (id, attr, None) => attr == 1 // Isolated vertices should be in MIS
     }.map(_._2).reduce(_ && _)
 
-    notadj && coveredVertices
-
+    notAdjacent && verticesCovered
   }
 
   def main(args: Array[String]) {
