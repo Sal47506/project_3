@@ -26,7 +26,7 @@ object main {
     
     while (remaining_vertices > 0) {
       iterations += 1
-      println(s"Iteration $iterations: $remaining_vertices vertices remaining")
+      System.out.println(s"Iteration $iterations: $remaining_vertices vertices remaining")
       // Generate random numbers for undecided vertices
       val random_g = g.mapVertices((id, attr) => 
         if (attr == 0) scala.util.Random.nextDouble() else -1.0
