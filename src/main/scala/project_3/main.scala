@@ -16,11 +16,13 @@ object main{
   Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
   Logger.getLogger("org.spark-project").setLevel(Level.WARN)
 
-  def LubyMIS(g_in: Graph[Int, Int]): Graph[Int, Int] = {
+  def LubyMIS(g_in: Graph[Int, Int]): (Graph[Int, Int], Int) = {
     var g = g_in.mapVertices((id, attr) => 0) // 0: undecided, 1: in MIS, -1: not in MIS
     var remaining_vertices = g.vertices.count()
+    var iterations = 0
     
     while (remaining_vertices > 0) {
+      iterations += 1
       // Generate random numbers for undecided vertices
       val random_g = g.mapVertices((id, attr) => 
         if (attr == 0) scala.util.Random.nextDouble() else -1.0
@@ -67,7 +69,7 @@ object main{
       
       remaining_vertices = g.vertices.filter(_._2 == 0).count()
     }
-    g
+    (g, iterations)
   }
 
   def verifyMIS(g_in: Graph[Int, Int]): Boolean = {
@@ -116,14 +118,14 @@ object main{
       val startTimeMillis = System.currentTimeMillis()
       val edges = sc.textFile(args(1)).map(line => {val x = line.split(","); Edge(x(0).toLong, x(1).toLong , 1)} )
       val g = Graph.fromEdges[Int, Int](edges, 0, edgeStorageLevel = StorageLevel.MEMORY_AND_DISK, vertexStorageLevel = StorageLevel.MEMORY_AND_DISK)
-      val g2 = LubyMIS(g)
+      val (g2, iterations) = LubyMIS(g)
 
       val endTimeMillis = System.currentTimeMillis()
       val durationSeconds = (endTimeMillis - startTimeMillis) / 1000
       println("==================================")
+      println(s"Number of iterations: $iterations")
       println("Luby's algorithm completed in " + durationSeconds + "s.")
       println("==================================")
-
       val g2df = spark.createDataFrame(g2.vertices)
       g2df.coalesce(1).write.format("csv").mode("overwrite").save(args(2))
     }
