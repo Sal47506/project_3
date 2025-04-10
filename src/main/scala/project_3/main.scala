@@ -23,6 +23,7 @@ object main{
     
     while (remaining_vertices > 0) {
       iterations += 1
+      println(s"Iteration $iterations: $remaining_vertices vertices remaining")
       // Generate random numbers for undecided vertices
       val random_g = g.mapVertices((id, attr) => 
         if (attr == 0) scala.util.Random.nextDouble() else -1.0
@@ -123,7 +124,6 @@ object main{
       val endTimeMillis = System.currentTimeMillis()
       val durationSeconds = (endTimeMillis - startTimeMillis) / 1000
       println("==================================")
-      println(s"Number of iterations: $iterations")
       println("Luby's algorithm completed in " + durationSeconds + "s.")
       println("==================================")
       val g2df = spark.createDataFrame(g2.vertices)
