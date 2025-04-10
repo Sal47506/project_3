@@ -98,6 +98,29 @@ Number of iterations: 5
 ==================================
 ```
 
+## Run Time Comparison of LubyMIS for the three configurations
+
+| Configuration | Number of Cores | Iterations | Total Time (s) | Notes                                      |
+|---------------|------------------|------------|----------------|---------------------------------------------|
+| 3x4 vCPUs     | 12 cores         | 5          | 113s           | Fastest overall                             |
+| 4x2 vCPUs     | 8 cores          | 4          | 208s           | Fewer iterations, but slower per iteration  |
+| 2x2 vCPUs     | 4 cores          | 5          | 321s           | Slowest configuration                       |
+
+---
+
+### Observations
+
+- The 3x4 vCPUs (12 cores) configuration was fastest
+- Despite only needing 4 iterations, the 4x2 vCPUs (8 cores) configuration was slower
+- The 2x2 vCPUs (4 cores) configuration had the longest execution time at 321 seconds, showing a clear slow-down due to fewer cores.
+- More cores enable better parallelism, reducing total runtime even if the number of iterations remains the same.
+
+---
+
+### Main take-away
+
+Higher number of cores improve the performance of LubyMIS on large graphs like Twitter. The 3x4 configuration demonstrates the benefits of parallelism, making it the best configuration out of the three.
+
 
 ## Submission via GitHub
 Delete your project's current **README.md** file (the one you're reading right now) and include your report as a new **README.md** file in the project root directory. Have no fear—the README with the project description is always available for reading in the template repository you created your repository from. For more information on READMEs, feel free to visit [this page](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-readmes) in the GitHub Docs. You'll be writing in [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown). Be sure that your repository is up to date and you have pushed all changes you've made to the project's code. When you're ready to submit, simply provide the link to your repository in the Canvas assignment's submission.
