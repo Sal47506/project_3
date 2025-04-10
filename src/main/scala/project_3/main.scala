@@ -37,19 +37,25 @@ object main {
         triplet => {
           if (triplet.srcAttr >= 0 && triplet.dstAttr >= 0) {
             if (triplet.srcAttr > triplet.dstAttr) {
-              triplet.sendToDst(false)
-            } else if (triplet.srcAttr < triplet.dstAttr) {
+              triplet.sendToSrc(true)
+            } else {
               triplet.sendToSrc(false)
+            }
+
+            if (triplet.dstAttr > triplet.srcAttr) {
+              triplet.sendToDst(true)
+            } else {
+              triplet.sendToDst(false)
             }
           }
         },
-        (a, b) => a || b
+        (a, b) => a && b
       )
       
       // Update vertex states
       g = g.outerJoinVertices(messages) {
         case (id, oldAttr, Some(msg)) => 
-          if (oldAttr == 0 && !msg) 1 // Add to MIS if not blocked by neighbor
+          if (oldAttr == 0 && msg) 1 // Add to MIS if greater than all neighbors
           else oldAttr
         case (id, oldAttr, None) => 
           if (oldAttr == 0) 1 // Isolated vertices join MIS
