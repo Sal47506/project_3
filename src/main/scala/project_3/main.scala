@@ -9,12 +9,15 @@ import org.apache.spark.graphx._
 import org.apache.spark.storage.StorageLevel
 import org.apache.log4j.{Level, Logger}
 
-object main{
+object main {
+  // Set root logger to ERROR
   val rootLogger = Logger.getRootLogger()
   rootLogger.setLevel(Level.ERROR)
 
+  // Set Spark loggers to WARN
   Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
   Logger.getLogger("org.spark-project").setLevel(Level.WARN)
+  Logger.getLogger("project_3").setLevel(Level.INFO)
 
   def LubyMIS(g_in: Graph[Int, Int]): (Graph[Int, Int], Int) = {
     var g = g_in.mapVertices((id, attr) => 0) // 0: undecided, 1: in MIS, -1: not in MIS
@@ -32,7 +35,6 @@ object main{
       // Compare random values with neighbors and send messages
       val messages = random_g.aggregateMessages[Boolean](
         triplet => {
-          // Only compare if both vertices are undecided (have random values >= 0)
           if (triplet.srcAttr >= 0 && triplet.dstAttr >= 0) {
             if (triplet.srcAttr > triplet.dstAttr) {
               triplet.sendToDst(false)
@@ -64,8 +66,8 @@ object main{
       )
       
       g = g.outerJoinVertices(neighbors) {
-        case (id, oldAttr, Some(-1)) => -1 // Mark as not in MIS
-        case (id, oldAttr, _) => oldAttr // Keep existing value
+        case (id, oldAttr, Some(-1)) => -1 
+        case (id, oldAttr, _) => oldAttr 
       }
       
       remaining_vertices = g.vertices.filter(_._2 == 0).count()
@@ -94,7 +96,7 @@ object main{
 
     val verticesCovered = g_in.vertices.leftJoin(allCovered) {
       case (id, attr, Some(covered)) => attr == 1 || covered
-      case (id, attr, None) => attr == 1 // Isolated vertices should be in MIS
+      case (id, attr, None) => attr == 1
     }.map(_._2).reduce(_ && _)
 
     notAdjacent && verticesCovered
@@ -105,8 +107,6 @@ object main{
     val conf = new SparkConf().setAppName("project_3")
     val sc = new SparkContext(conf)
     val spark = SparkSession.builder.config(conf).getOrCreate()
-/* You can either use sc or spark */
-
     if(args.length == 0) {
       println("Usage: project_3 option = {compute, verify}")
       sys.exit(1)
