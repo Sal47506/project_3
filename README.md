@@ -1,4 +1,5 @@
 # Large Scale Data Processing: Project 3
+# Collaborators: Salamun Nuhin, Caden Parajuli, Tian-hao Zhang 
 ## Getting started
 Head to [Project 1](https://github.com/CSCI3390Spring2025/project_1) if you're looking for information on Git, template repositories, or setting up your local/remote environments.
 
